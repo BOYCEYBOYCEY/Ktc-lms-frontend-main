@@ -13,6 +13,7 @@ import { AuthProvider } from "./context/AuthContext";
 import StudentHome from "./components/Dashboard/StudentHome";
 import TeacherHome from "./components/Dashboard/TeacherHome";
 import AdminHome from "./components/Dashboard/AdminHome";
+import StudentDetailPage from "./components/Dashboard/StudentDetailPage";
 import LiveClass from "./components/Dashboard/LiveClass";
 import Messages from "./components/Dashboard/Messages";
 import AddClassSections from "./components/Dashboard/Admin/AddClassSections";
@@ -66,6 +67,7 @@ export default function Main() {
                                 path="add-class"
                                 element={<AddClassSections />}
                             />
+                            <Route path="student/:studentId" element={<StudentDetailPage />} />
                         </Route>
                     </Route>
                 </Routes>

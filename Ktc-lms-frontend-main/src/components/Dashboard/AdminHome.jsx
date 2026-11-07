@@ -1,15 +1,17 @@
 // AdminHome.jsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import PerformanceChart from "./PerformanceChart";
 import TeacherActivityFeed from "./TeacherActivityFeed";
 import { getSchoolStats, getAtRiskStudents } from "../../lib/dataHelpers";
 import { performanceTrends, teacherActivity } from "../../data/trends";
-import { AlertTriangle, TrendingDown, Award } from "lucide-react";
+import { AlertTriangle, TrendingDown, Award, ChevronRight } from "lucide-react";
 
 export default function AdminHome() {
+    const navigate = useNavigate();
     const stats = getSchoolStats();
     const allAtRiskStudents = getAtRiskStudents();
-    const atRiskStudents = allAtRiskStudents.slice(0, 10); // Show top 10 on dashboard
+    const atRiskStudents = allAtRiskStudents.slice(0, 4); // Show top 4 on dashboard
 
     return (
         <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
@@ -53,45 +55,38 @@ export default function AdminHome() {
                         </div>
                         <div className="space-y-3">
                             {atRiskStudents.map((student) => (
-                                <div
+                                <button
                                     key={student.id}
-                                    className={`p-4 rounded-lg border-l-4 cursor-pointer hover:shadow-md transition ${
+                                    onClick={() => navigate(`/admin/student/${student.id}`)}
+                                    className={`w-full text-left p-4 rounded-lg border-l-4 cursor-pointer hover:shadow-lg transition transform hover:scale-101 ${
                                         student.severity === "critical"
-                                            ? "bg-red-100 border-l-red-600"
-                                            : "bg-yellow-100 border-l-yellow-600"
+                                            ? "bg-red-100 border-l-red-600 hover:bg-red-150"
+                                            : "bg-yellow-100 border-l-yellow-600 hover:bg-yellow-150"
                                     }`}
                                 >
                                     <div className="flex items-start justify-between">
-                                        <div className="flex-1">
+                                        <div className="flex-1 min-w-0">
                                             <div className="font-semibold text-gray-800">
                                                 {student.name}
                                             </div>
                                             <div className="text-sm text-gray-700 mt-1">
-                                                Class {student.class} • Marks: {student.currentAvgMarks}% • Attendance: {student.attendance}%
+                                                Class {student.class} • {student.currentAvgMarks}% • {student.attendance}% attendance
                                             </div>
-                                            <div className="text-xs text-gray-600 mt-2 space-y-1">
-                                                {student.reasons.map((reason, idx) => (
-                                                    <div key={idx} className="flex items-center">
-                                                        <TrendingDown className="w-3 h-3 mr-1 text-red-600" />
-                                                        {reason}
-                                                    </div>
-                                                ))}
+                                            <div className="text-xs text-gray-600 mt-1">
+                                                {student.reasons[0]}
                                             </div>
                                         </div>
-                                        <div className={`px-3 py-1 rounded text-xs font-bold whitespace-nowrap ml-2 ${
-                                            student.severity === "critical"
-                                                ? "bg-red-600 text-white"
-                                                : "bg-yellow-600 text-white"
-                                        }`}>
-                                            {student.severity.toUpperCase()}
-                                        </div>
+                                        <ChevronRight className="w-5 h-5 text-gray-600 flex-shrink-0 ml-2" />
                                     </div>
-                                </div>
+                                </button>
                             ))}
                         </div>
-                        {allAtRiskStudents.length > 10 && (
-                            <button className="w-full mt-4 py-2 text-sm font-semibold text-red-600 hover:text-red-700 border-t border-red-200 pt-4">
-                                View all {allAtRiskStudents.length - 10} more students →
+                        {allAtRiskStudents.length > 4 && (
+                            <button
+                                onClick={() => navigate("/admin/at-risk-list")}
+                                className="w-full mt-4 py-3 text-sm font-semibold text-red-600 hover:text-red-700 border-t border-red-200 pt-4 hover:bg-red-50 rounded transition"
+                            >
+                                View all {allAtRiskStudents.length} at-risk students →
                             </button>
                         )}
                     </div>
