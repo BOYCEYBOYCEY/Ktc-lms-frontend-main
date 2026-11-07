@@ -1,52 +1,13 @@
-// Attendance percentage for each student (current month)
-export const attendance = {
-  1: 94, // Ravi Kumar
-  2: 98, // Priya Sharma
-  3: 72, // Arjun Singh ⚠️ AT-RISK (low attendance)
-  4: 96, // Neha Patel
-  5: 68, // Akshay Gupta ⚠️ AT-RISK (very low)
-  6: 92, // Zara Khan
-  7: 100, // Kavya Menon
-  8: 95, // Rohan Desai
-  9: 65, // Isha Verma ⚠️ AT-RISK (very low)
-  10: 97, // Aditya Malhotra
-  11: 93, // Divya Nair
-  12: 58, // Samir Joshi ⚠️ AT-RISK (critical)
-  13: 91, // Esha Das
-  14: 96, // Harsh Reddy
-  15: 99, // Meera Pillai
+// Generate attendance for all students
+const generateAttendance = (isAtRisk) => {
+  if (isAtRisk) {
+    return 50 + Math.random() * 25; // Low attendance
+  }
+  return 85 + Math.random() * 15; // Normal attendance
 };
 
-// Detailed attendance records (last 30 days) - just a few entries as example
-export const attendanceDetails = {
-  3: [
-    // Arjun Singh - AT-RISK
-    { date: "2026-11-01", status: "present" },
-    { date: "2026-11-02", status: "present" },
-    { date: "2026-11-03", status: "absent" },
-    { date: "2026-11-04", status: "absent" },
-    { date: "2026-11-05", status: "present" },
-    { date: "2026-11-06", status: "absent" },
-    { date: "2026-11-07", status: "present" },
-  ],
-  9: [
-    // Isha Verma - AT-RISK
-    { date: "2026-11-01", status: "absent" },
-    { date: "2026-11-02", status: "absent" },
-    { date: "2026-11-03", status: "present" },
-    { date: "2026-11-04", status: "absent" },
-    { date: "2026-11-05", status: "absent" },
-    { date: "2026-11-06", status: "present" },
-    { date: "2026-11-07", status: "absent" },
-  ],
-  12: [
-    // Samir Joshi - AT-RISK
-    { date: "2026-11-01", status: "absent" },
-    { date: "2026-11-02", status: "absent" },
-    { date: "2026-11-03", status: "absent" },
-    { date: "2026-11-04", status: "present" },
-    { date: "2026-11-05", status: "absent" },
-    { date: "2026-11-06", status: "absent" },
-    { date: "2026-11-07", status: "absent" },
-  ],
-};
+export const attendance = {};
+for (let i = 1; i <= 465; i++) {
+  const isAtRisk = i <= 45 ? i < 3 : i <= 94 ? i < 49 : i <= 138 ? i < 96 : i <= 185 ? i < 141 : i <= 231 ? i < 188 : i <= 281 ? i < 234 : i <= 326 ? false : i <= 373 ? false : i <= 416 ? i < 418 : false;
+  attendance[i] = Math.round(generateAttendance(isAtRisk));
+}

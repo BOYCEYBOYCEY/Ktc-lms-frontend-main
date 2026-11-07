@@ -8,7 +8,8 @@ import { AlertTriangle, TrendingDown, Award } from "lucide-react";
 
 export default function AdminHome() {
     const stats = getSchoolStats();
-    const atRiskStudents = getAtRiskStudents();
+    const allAtRiskStudents = getAtRiskStudents();
+    const atRiskStudents = allAtRiskStudents.slice(0, 10); // Show top 10 on dashboard
 
     return (
         <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
@@ -38,14 +39,16 @@ export default function AdminHome() {
                     <PerformanceChart data={performanceTrends} />
 
                     {/* At-Risk Students - HERO SECTION */}
-                    <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg shadow p-6 border border-red-200">
-                        <div className="flex items-center mb-4">
-                            <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
-                            <h3 className="text-lg font-semibold text-gray-800">
-                                Students Needing Intervention
-                            </h3>
-                            <span className="ml-auto bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                                {atRiskStudents.length}
+                    <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg shadow-lg p-6 border border-red-200">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center">
+                                <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
+                                <h3 className="text-xl font-bold text-gray-800">
+                                    Students Needing Intervention
+                                </h3>
+                            </div>
+                            <span className="bg-red-600 text-white text-sm font-bold px-4 py-1 rounded-full">
+                                {allAtRiskStudents.length} Total
                             </span>
                         </div>
                         <div className="space-y-3">
@@ -86,6 +89,11 @@ export default function AdminHome() {
                                 </div>
                             ))}
                         </div>
+                        {allAtRiskStudents.length > 10 && (
+                            <button className="w-full mt-4 py-2 text-sm font-semibold text-red-600 hover:text-red-700 border-t border-red-200 pt-4">
+                                View all {allAtRiskStudents.length - 10} more students →
+                            </button>
+                        )}
                     </div>
                 </div>
 

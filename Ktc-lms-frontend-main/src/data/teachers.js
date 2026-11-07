@@ -1,98 +1,38 @@
-export const teachers = [
-  {
-    id: 1,
-    name: "Dr. Rajesh Kumar",
-    subject: "Mathematics",
-    classes: ["8-A", "8-B", "9-A"],
-    email: "rajesh.kumar@ktc.edu",
-    phone: "9876543301",
-    experience: 12,
-  },
-  {
-    id: 2,
-    name: "Mrs. Priya Saxena",
-    subject: "Science",
-    classes: ["8-A", "8-B"],
-    email: "priya.saxena@ktc.edu",
-    phone: "9876543302",
-    experience: 8,
-  },
-  {
-    id: 3,
-    name: "Mr. Vikram Joshi",
-    subject: "English",
-    classes: ["8-A", "8-B", "9-A"],
-    email: "vikram.joshi@ktc.edu",
-    phone: "9876543303",
-    experience: 15,
-  },
-  {
-    id: 4,
-    name: "Mrs. Anita Verma",
-    subject: "Hindi",
-    classes: ["8-A", "8-B"],
-    email: "anita.verma@ktc.edu",
-    phone: "9876543304",
-    experience: 10,
-  },
-  {
-    id: 5,
-    name: "Mr. Ashok Sharma",
-    subject: "Social Science",
-    classes: ["8-A", "8-B", "9-A"],
-    email: "ashok.sharma@ktc.edu",
-    phone: "9876543305",
-    experience: 20,
-  },
-  {
-    id: 6,
-    name: "Mrs. Sneha Gupta",
-    subject: "Class Incharge",
-    classes: ["8-A"],
-    email: "sneha.gupta@ktc.edu",
-    phone: "9876543306",
-    experience: 7,
-  },
-  {
-    id: 7,
-    name: "Mr. Rajiv Nair",
-    subject: "Class Incharge",
-    classes: ["8-B"],
-    email: "rajiv.nair@ktc.edu",
-    phone: "9876543307",
-    experience: 9,
-  },
-  {
-    id: 8,
-    name: "Mrs. Deepa Menon",
-    subject: "Class Incharge",
-    classes: ["9-A"],
-    email: "deepa.menon@ktc.edu",
-    phone: "9876543308",
-    experience: 11,
-  },
+const teacherNames = [
+  "Dr. Rajesh Kumar", "Mrs. Priya Saxena", "Mr. Vikram Joshi", "Mrs. Anita Verma",
+  "Mr. Ashok Sharma", "Mrs. Sneha Gupta", "Mr. Rajiv Nair", "Mrs. Deepa Menon",
+  "Mr. Amit Patel", "Mrs. Kavya Singh", "Mr. Rohan Desai", "Mrs. Neha Bhat",
+  "Mr. Suresh Gupta", "Mrs. Anjali Nair", "Mr. Vikash Kumar", "Mrs. Divya Sharma",
+  "Mr. Arjun Reddy", "Mrs. Meera Pillai", "Mr. Harsh Malhotra", "Mrs. Priyanka Das",
+  "Mr. Sanjay Verma", "Mrs. Isha Khan", "Mr. Aditya Singh", "Mrs. Pooja Desai",
+  "Mr. Ramesh Nair", "Mrs. Shreya Gupta", "Mr. Nitin Sharma", "Mrs. Ananya Patel",
+  "Mr. Vikram Singh", "Mrs. Ritika Joshi",
 ];
 
-export const classes = [
-  {
-    id: 1,
-    name: "8-A",
-    classIncharge: "Mrs. Sneha Gupta",
-    studentCount: 7,
-    totalStrength: 45,
-  },
-  {
-    id: 2,
-    name: "8-B",
-    classIncharge: "Mr. Rajiv Nair",
-    studentCount: 6,
-    totalStrength: 48,
-  },
-  {
-    id: 3,
-    name: "9-A",
-    classIncharge: "Mrs. Deepa Menon",
-    studentCount: 2,
-    totalStrength: 44,
-  },
+const subjects = [
+  "Mathematics", "Science", "English", "Hindi", "Social Science",
+  "Computer Science", "Physical Education", "Art", "Music",
 ];
+
+const classes = ["6-A", "6-B", "7-A", "7-B", "8-A", "8-B", "9-A", "9-B", "10-A", "10-B"];
+
+export const teachers = teacherNames.map((name, i) => ({
+  id: i + 1,
+  name,
+  subject: subjects[i % subjects.length],
+  classes: classes.slice(i % 5, (i % 5) + 3), // Each teacher handles 3 classes
+  email: `${name.toLowerCase().replace(/\s+/g, ".")}.teacher@ktc.edu`,
+  phone: `987654${String(5000 + i).padStart(5, "0")}`,
+  experience: 3 + Math.floor(Math.random() * 20),
+}));
+
+export const classData = classes.map((className) => ({
+  id: className,
+  name: className,
+  classIncharge: teacherNames[Math.floor(Math.random() * teacherNames.length)],
+  studentCount: 43 + Math.floor(Math.random() * 8),
+  totalStrength: 43 + Math.floor(Math.random() * 8),
+}));
+
+console.log(`Total teachers: ${teachers.length}`);
+console.log(`Total classes: ${classData.length}`);
