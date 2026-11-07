@@ -48,17 +48,6 @@ export default function Main() {
                         </Route>
                     </Route>
 
-                    {/* Teacher */}
-                    <Route
-                        element={<PrivateRoute allowedRoles={["teacher"]} />}
-                    >
-                        <Route path="/teacher/*" element={<DashboardLayout />}>
-                            <Route index element={<TeacherHome />} />
-                            <Route path="live-class" element={<LiveClass />} />
-                            <Route path="messages" element={<Messages />} />
-                        </Route>
-                    </Route>
-
                     {/* Admin */}
                     <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
                         <Route path="/admin/*" element={<DashboardLayout />}>
@@ -69,6 +58,18 @@ export default function Main() {
                                 path="add-class"
                                 element={<AddClassSections />}
                             />
+                            <Route path="class/:className" element={<ClassDetailPage />} />
+                        </Route>
+                    </Route>
+
+                    {/* Teacher */}
+                    <Route
+                        element={<PrivateRoute allowedRoles={["teacher"]} />}
+                    >
+                        <Route path="/teacher/*" element={<DashboardLayout />}>
+                            <Route index element={<TeacherHome />} />
+                            <Route path="live-class" element={<LiveClass />} />
+                            <Route path="messages" element={<Messages />} />
                             <Route path="student/:studentId" element={<StudentDetailPage />} />
                             <Route path="class/:className" element={<ClassDetailPage />} />
                             <Route path="at-risk-list" element={<AtRiskListPage />} />
