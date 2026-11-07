@@ -1,8 +1,11 @@
 // AdminHome.jsx
 import React, { useState } from "react";
 import Messages from "./Messages";
+import PerformanceChart from "./PerformanceChart";
+import TeacherActivityFeed from "./TeacherActivityFeed";
 import { getSchoolStats, getAtRiskStudents } from "../../lib/dataHelpers";
-import { AlertTriangle, TrendingDown } from "lucide-react";
+import { performanceTrends, teacherActivity } from "../../data/trends";
+import { AlertTriangle, TrendingDown, Award } from "lucide-react";
 
 export default function AdminHome() {
     const stats = getSchoolStats();
@@ -39,11 +42,17 @@ export default function AdminHome() {
                         </div>
                     </div>
 
-                    {/* Class Performance */}
+                    {/* Performance Trend Chart */}
+                    <PerformanceChart data={performanceTrends} />
+
+                    {/* Class Performance Summary */}
                     <div className="bg-white rounded-lg shadow p-6">
-                        <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                            Class-wise Performance
-                        </h3>
+                        <div className="flex items-center mb-4">
+                            <Award className="w-5 h-5 text-blue-600 mr-2" />
+                            <h3 className="text-lg font-semibold text-gray-800">
+                                Class-wise Performance
+                            </h3>
+                        </div>
                         <div className="space-y-3">
                             {stats.classStats.map((classInfo) => (
                                 <div
@@ -131,89 +140,48 @@ export default function AdminHome() {
 
                 {/* RIGHT SIDE: Sidebar */}
                 <div className="space-y-6">
-                    {/* Upcoming Events */}
-                    <div className="bg-white text-black rounded-lg shadow p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-semibold">
-                                Upcoming Events
-                            </h2>
-                            <button className="text-purple-600 text-sm">
-                                See all...
-                            </button>
+                    {/* Teacher Activity Feed */}
+                    <TeacherActivityFeed activities={teacherActivity} />
+
+                    {/* At-Risk Summary Card */}
+                    <div className="bg-gradient-to-br from-red-500 to-orange-500 rounded-lg shadow p-6 text-white">
+                        <h3 className="text-lg font-semibold mb-2">
+                            At-Risk Alert
+                        </h3>
+                        <div className="text-3xl font-bold mb-2">
+                            {atRiskStudents.length}
                         </div>
-                        <div className="space-y-3">
-                            {[
-                                {
-                                    time: "Aug 5, 09:00 AM",
-                                    title: "Science Fair",
-                                },
-                                {
-                                    time: "Aug 7, 10:30 AM",
-                                    title: "Annual Sports Day",
-                                },
-                                {
-                                    time: "Aug 10, 12:00 PM",
-                                    title: "Parent-Teacher Meeting",
-                                },
-                            ].map((event, index) => (
-                                <div
-                                    key={index}
-                                    className="p-3 bg-gray-50 rounded border-l-4 border-green-500"
-                                >
-                                    <p className="font-medium">{event.title}</p>
-                                    <p className="text-sm text-gray-500">
-                                        {event.time}
-                                    </p>
+                        <p className="text-sm text-red-100 mb-4">
+                            Students need immediate intervention
+                        </p>
+                        <div className="space-y-1 text-xs">
+                            {atRiskStudents.slice(0, 3).map((s) => (
+                                <div key={s.id} className="flex items-center">
+                                    <span className="w-2 h-2 bg-white rounded-full mr-2"></span>
+                                    {s.name} - {s.severity}
                                 </div>
                             ))}
-                        </div>
-                        <div className="mt-4 flex justify-center">
-                            <button className="text-sm text-white bg-purple-600 px-4 py-2 rounded hover:bg-purple-700">
-                                View Calendar
-                            </button>
                         </div>
                     </div>
 
-                    {/* Notice Board */}
+                    {/* Quick Stats */}
                     <div className="bg-white text-black rounded-lg shadow p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-semibold">
-                                Notice Board
-                            </h2>
-                            <button className="text-purple-600 text-sm">
-                                See all...
-                            </button>
-                        </div>
+                        <h3 className="text-lg font-semibold mb-4">
+                            Quick Stats
+                        </h3>
                         <div className="space-y-3">
-                            {[
-                                {
-                                    msg: "Submit the mathematics assignment",
-                                    time: "02:00 PM, Wed",
-                                },
-                                {
-                                    msg: "All students take review task.",
-                                    time: "01:10 PM, Wed",
-                                },
-                                {
-                                    msg: "Make assignments on any topic",
-                                    time: "05:00 PM, Wed",
-                                },
-                            ].map((note, i) => (
-                                <div
-                                    key={i}
-                                    className="flex items-start space-x-3 p-3 bg-gray-50 rounded"
-                                >
-                                    <div className="h-10 w-10 rounded-full bg-gray-300 flex-shrink-0" />
-                                    <div>
-                                        <p className="font-medium">
-                                            {note.msg}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                            {note.time}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
+                            <div className="flex justify-between items-center p-3 bg-blue-50 rounded">
+                                <span className="text-sm font-medium">Avg Class Marks</span>
+                                <span className="text-lg font-bold text-blue-600">{stats.avgMarks}%</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-green-50 rounded">
+                                <span className="text-sm font-medium">Avg Attendance</span>
+                                <span className="text-lg font-bold text-green-600">{stats.avgAttendance}%</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-purple-50 rounded">
+                                <span className="text-sm font-medium">Total Classes</span>
+                                <span className="text-lg font-bold text-purple-600">{stats.totalClasses}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
