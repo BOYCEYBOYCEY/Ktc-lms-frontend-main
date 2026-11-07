@@ -14,6 +14,8 @@ import StudentHome from "./components/Dashboard/StudentHome";
 import TeacherHome from "./components/Dashboard/TeacherHome";
 import AdminHome from "./components/Dashboard/AdminHome";
 import StudentDetailPage from "./components/Dashboard/StudentDetailPage";
+import ClassDetailPage from "./components/Dashboard/ClassDetailPage";
+import AtRiskListPage from "./components/Dashboard/AtRiskListPage";
 import LiveClass from "./components/Dashboard/LiveClass";
 import Messages from "./components/Dashboard/Messages";
 import AddClassSections from "./components/Dashboard/Admin/AddClassSections";
@@ -68,6 +70,8 @@ export default function Main() {
                                 element={<AddClassSections />}
                             />
                             <Route path="student/:studentId" element={<StudentDetailPage />} />
+                            <Route path="class/:className" element={<ClassDetailPage />} />
+                            <Route path="at-risk-list" element={<AtRiskListPage />} />
                         </Route>
                     </Route>
                 </Routes>

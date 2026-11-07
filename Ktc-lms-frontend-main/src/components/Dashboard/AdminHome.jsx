@@ -1,17 +1,15 @@
-// AdminHome.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import PerformanceChart from "./PerformanceChart";
 import TeacherActivityFeed from "./TeacherActivityFeed";
-import { getSchoolStats, getAtRiskStudents } from "../../lib/dataHelpers";
+import { getSchoolStats } from "../../lib/dataHelpers";
 import { performanceTrends, teacherActivity } from "../../data/trends";
-import { AlertTriangle, TrendingDown, Award, ChevronRight } from "lucide-react";
+import { classData } from "../../data/teachers";
+import { Users, AlertTriangle } from "lucide-react";
 
 export default function AdminHome() {
     const navigate = useNavigate();
     const stats = getSchoolStats();
-    const allAtRiskStudents = getAtRiskStudents();
-    const atRiskStudents = allAtRiskStudents.slice(0, 4); // Show top 4 on dashboard
 
     return (
         <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
@@ -37,58 +35,54 @@ export default function AdminHome() {
                         </div>
                     </div>
 
-                    {/* Performance Chart - Clear Metrics */}
+                    {/* Performance Chart */}
                     <PerformanceChart data={performanceTrends} />
 
-                    {/* At-Risk Students - HERO SECTION */}
-                    <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg shadow-lg p-6 border border-red-200">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center">
-                                <AlertTriangle className="w-5 h-5 text-red-600 mr-2" />
-                                <h3 className="text-xl font-bold text-gray-800">
-                                    Students Needing Intervention
-                                </h3>
-                            </div>
-                            <span className="bg-red-600 text-white text-sm font-bold px-4 py-1 rounded-full">
-                                {allAtRiskStudents.length} Total
-                            </span>
-                        </div>
-                        <div className="space-y-3">
-                            {atRiskStudents.map((student) => (
-                                <button
-                                    key={student.id}
-                                    onClick={() => navigate(`/admin/student/${student.id}`)}
-                                    className={`w-full text-left p-4 rounded-lg border-l-4 cursor-pointer hover:shadow-lg transition transform hover:scale-101 ${
-                                        student.severity === "critical"
-                                            ? "bg-red-100 border-l-red-600 hover:bg-red-150"
-                                            : "bg-yellow-100 border-l-yellow-600 hover:bg-yellow-150"
-                                    }`}
-                                >
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-semibold text-gray-800">
-                                                {student.name}
+                    {/* All Classes Grid */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                            All Classes
+                        </h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {classData.map((cls) => {
+                                const classStats = stats.classStats.find(
+                                    (cs) => cs.className === cls.name
+                                );
+                                return (
+                                    <button
+                                        key={cls.id}
+                                        onClick={() => navigate(`/admin/class/${cls.name}`)}
+                                        className="p-4 rounded-lg border-2 border-gray-200 hover:border-blue-500 hover:shadow-lg transition bg-white hover:bg-blue-50"
+                                    >
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div>
+                                                <p className="font-bold text-gray-800 text-lg">
+                                                    {cls.name}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    Section {cls.name.split("-")[1]}
+                                                </p>
                                             </div>
-                                            <div className="text-sm text-gray-700 mt-1">
-                                                Class {student.class} • {student.currentAvgMarks}% • {student.attendance}% attendance
-                                            </div>
-                                            <div className="text-xs text-gray-600 mt-1">
-                                                {student.reasons[0]}
-                                            </div>
+                                            {classStats?.atRiskCount > 0 && (
+                                                <AlertTriangle className="w-4 h-4 text-red-600" />
+                                            )}
                                         </div>
-                                        <ChevronRight className="w-5 h-5 text-gray-600 flex-shrink-0 ml-2" />
-                                    </div>
-                                </button>
-                            ))}
+                                        <div className="space-y-1 text-xs text-gray-600">
+                                            <div className="flex items-center gap-1">
+                                                <Users className="w-3 h-3" />
+                                                {cls.studentCount} students
+                                            </div>
+                                            <div>Avg {classStats?.avgMarks}%</div>
+                                            {classStats?.atRiskCount > 0 && (
+                                                <div className="text-red-600 font-semibold">
+                                                    ⚠️ {classStats.atRiskCount} at-risk
+                                                </div>
+                                            )}
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
-                        {allAtRiskStudents.length > 4 && (
-                            <button
-                                onClick={() => navigate("/admin/at-risk-list")}
-                                className="w-full mt-4 py-3 text-sm font-semibold text-red-600 hover:text-red-700 border-t border-red-200 pt-4 hover:bg-red-50 rounded transition"
-                            >
-                                View all {allAtRiskStudents.length} at-risk students →
-                            </button>
-                        )}
                     </div>
                 </div>
 
@@ -96,38 +90,6 @@ export default function AdminHome() {
                 <div className="space-y-6">
                     {/* Teacher Activity Feed */}
                     <TeacherActivityFeed activities={teacherActivity} />
-
-                    {/* Class Performance Reference */}
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <div className="flex items-center mb-4">
-                            <Award className="w-5 h-5 text-blue-600 mr-2" />
-                            <h3 className="text-sm font-semibold text-gray-800">
-                                Class Performance
-                            </h3>
-                        </div>
-                        <div className="space-y-2">
-                            {stats.classStats.map((classInfo) => (
-                                <div
-                                    key={classInfo.className}
-                                    className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                                >
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="font-semibold text-gray-800 text-sm">
-                                            Class {classInfo.className}
-                                        </span>
-                                        {classInfo.atRiskCount > 0 && (
-                                            <span className="text-xs text-red-600 font-bold">
-                                                ⚠️ {classInfo.atRiskCount}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="text-xs text-gray-600">
-                                        {classInfo.avgMarks}% avg • {classInfo.avgAttendance}% attendance
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
 
                     {/* Quick Stats */}
                     <div className="bg-white rounded-lg shadow p-6">
