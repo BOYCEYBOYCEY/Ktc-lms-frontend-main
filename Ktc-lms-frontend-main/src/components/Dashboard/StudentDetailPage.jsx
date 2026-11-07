@@ -1,11 +1,13 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, AlertTriangle, TrendingDown, Calendar } from "lucide-react";
 import { getStudentDetail, getAtRiskStudents } from "../../lib/dataHelpers";
 
 export default function StudentDetailPage() {
   const { studentId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isTeacher = location.pathname.includes("/teacher/");
   const student = getStudentDetail(parseInt(studentId));
   const allAtRisk = getAtRiskStudents();
   const atRiskInfo = allAtRisk.find((s) => s.id === parseInt(studentId));
@@ -23,7 +25,7 @@ export default function StudentDetailPage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <button
-          onClick={() => navigate("/admin")}
+          onClick={() => navigate(isTeacher ? "/teacher" : "/admin")}
           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold"
         >
           <ArrowLeft className="w-5 h-5" />

@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, AlertTriangle, Users } from "lucide-react";
 import { students } from "../../data/students";
 import { attendance } from "../../data/attendance";
@@ -9,6 +9,8 @@ import { getAtRiskStudents } from "../../lib/dataHelpers";
 export default function ClassDetailPage() {
   const { className } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isTeacher = location.pathname.includes("/teacher/");
   const allAtRisk = getAtRiskStudents();
 
   const classStudents = students.filter((s) => s.class === className);
@@ -40,7 +42,7 @@ export default function ClassDetailPage() {
       {/* Header */}
       <div className="mb-8">
         <button
-          onClick={() => navigate("/admin")}
+          onClick={() => navigate(isTeacher ? "/teacher" : "/admin")}
           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold mb-4"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -107,7 +109,7 @@ export default function ClassDetailPage() {
             return (
               <button
                 key={student.id}
-                onClick={() => navigate(`/admin/student/${student.id}`)}
+                onClick={() => navigate(`${isTeacher ? "/teacher" : "/admin"}/student/${student.id}`)}
                 className={`w-full text-left p-4 rounded-lg border-l-4 hover:shadow-md transition ${
                   isAtRisk
                     ? "bg-red-50 border-l-red-600 hover:bg-red-100"
