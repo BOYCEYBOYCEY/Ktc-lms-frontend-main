@@ -13,6 +13,8 @@
     "axios": "^1.11.0",
     "dotenv": "^17.2.1",
     "framer-motion": "^12.23.12",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "lucide-react": "^0.525.0",
     "motion-ui": "^2.0.8",
     "react": "^19.1.1",

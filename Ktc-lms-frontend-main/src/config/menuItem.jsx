@@ -21,7 +21,7 @@ export const adminMenuItems = [
     { title: "Analytics", path: "setting", icon: MdSettings },
     { title: "Teacher", path: "assignment", icon: MdAssignment },
     { title: "Student", path: "notification", icon: MdNotifications },
-    { title: "Fee", path: "chesmate", icon: MdPeople },
+    { title: "Fee", path: "fees", icon: MdPeople },
     { title: "Syllabus", path: "messages", icon: MdMessage },
     { title: "Time Table", path: "messages", icon: MdMessage },
     { title: "Homework", path: "messages", icon: MdMessage },
@@ -45,9 +45,10 @@ export const adminMenuItems = [
 
 export const teacherMenuItems = [
     { title: "Dashboard", path: "/", icon: MdDashboard },
-    { title: "Live Class", path: "live-class", icon: MdLiveTv },
-    { title: "Assignment", path: "assignment", icon: MdAssignment },
-    { title: "Notification", path: "notification", icon: MdNotifications },
+    { title: "Attendance", path: "attendance", icon: MdAssignment },
+    { title: "Marks", path: "marks", icon: MdBarChart },
+    { title: "Assignments", path: "assignments", icon: MdAssignment },
+    { title: "Messages", path: "messages", icon: MdMessage },
 ];
 
 export const superAdminMenuItems = [
@@ -76,10 +77,10 @@ export const studentMenuItems = [
 
 export const parentMenuItems = [
     { title: "Dashboard", path: "/", icon: MdDashboard },
-    { title: "Notifications", path: "notifications", icon: MdNotifications },
-    { title: "Results", path: "results", icon: MdBarChart },
+    { title: "Fees", path: "fees/:studentId", icon: MdPeople },
+    { title: "Payment History", path: "payment-history/:studentId", icon: MdBarChart },
+    { title: "Request Waiver", path: "waiver-request/:studentId", icon: MdHelp },
     { title: "Messages", path: "messages", icon: MdMessage },
-    { title: "Help & Support", path: "help", icon: MdHelp },
 ];
 
 export const getMenuItems = (role) => {

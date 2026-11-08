@@ -19,6 +19,14 @@ import AtRiskListPage from "./components/Dashboard/AtRiskListPage";
 import LiveClass from "./components/Dashboard/LiveClass";
 import Messages from "./components/Dashboard/Messages";
 import AddClassSections from "./components/Dashboard/Admin/AddClassSections";
+import TeacherAttendance from "./components/Dashboard/TeacherAttendance";
+import TeacherMarks from "./components/Dashboard/TeacherMarks";
+import ParentHome from "./components/Dashboard/ParentHome";
+import FeeDetails from "./components/Dashboard/FeeDetails";
+import PaymentHistory from "./components/Dashboard/PaymentHistory";
+import AdminFeesDashboard from "./components/Dashboard/AdminFeesDashboard";
+import FeeWaiverApproval from "./components/Dashboard/Admin/FeeWaiverApproval";
+import FeeWaiverRequest from "./components/Dashboard/FeeWaiverRequest";
 
 export default function Main() {
 
@@ -48,17 +56,27 @@ export default function Main() {
                         </Route>
                     </Route>
 
+                    {/* Parent */}
+                    <Route element={<PrivateRoute allowedRoles={["parent"]} />}>
+                        <Route path="/parent/*" element={<DashboardLayout />}>
+                            <Route index element={<ParentHome />} />
+                            <Route path="fees/:studentId" element={<FeeDetails />} />
+                            <Route path="payment-history/:studentId" element={<PaymentHistory />} />
+                            <Route path="waiver-request/:studentId" element={<FeeWaiverRequest />} />
+                            <Route path="messages" element={<Messages />} />
+                        </Route>
+                    </Route>
+
                     {/* Admin */}
                     <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
                         <Route path="/admin/*" element={<DashboardLayout />}>
                             <Route index element={<AdminHome />} />
                             <Route path="live-class" element={<LiveClass />} />
                             <Route path="messages" element={<Messages />} />
-                            <Route
-                                path="add-class"
-                                element={<AddClassSections />}
-                            />
+                            <Route path="add-class" element={<AddClassSections />} />
                             <Route path="class/:className" element={<ClassDetailPage />} />
+                            <Route path="fees" element={<AdminFeesDashboard />} />
+                            <Route path="waiver-approvals" element={<FeeWaiverApproval />} />
                         </Route>
                     </Route>
 
@@ -68,7 +86,8 @@ export default function Main() {
                     >
                         <Route path="/teacher/*" element={<DashboardLayout />}>
                             <Route index element={<TeacherHome />} />
-                            <Route path="live-class" element={<LiveClass />} />
+                            <Route path="attendance" element={<TeacherAttendance />} />
+                            <Route path="marks" element={<TeacherMarks />} />
                             <Route path="messages" element={<Messages />} />
                             <Route path="student/:studentId" element={<StudentDetailPage />} />
                             <Route path="class/:className" element={<ClassDetailPage />} />

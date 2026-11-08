@@ -24,6 +24,7 @@ const TEST_CREDENTIALS = {
     teacher: { email: "teacher@ktc.com", password: "teacher123", role: "teacher" },
     student: { admission_number: "STU001", password: "student123", role: "student" },
     superAdmin: { email: "superadmin@ktc.com", password: "superadmin123", role: "superAdmin" },
+    parent: { email: "parent@ktc.com", password: "parent123", role: "parent", parentPhone: "9876543200" },
 };
 
 const Login = () => {
@@ -84,6 +85,7 @@ const Login = () => {
             teacher: "mock_teacher_token_" + Date.now(),
             student: "mock_student_token_" + Date.now(),
             superAdmin: "mock_superadmin_token_" + Date.now(),
+            parent: "mock_parent_token_" + Date.now(),
         };
 
         const mockUsers = {
@@ -91,6 +93,7 @@ const Login = () => {
             teacher: { id: 2, name: "Teacher User", email, role: "teacher" },
             student: { id: 3, name: "Student User", admission_number, role: "user" },
             superAdmin: { id: 4, name: "Super Admin User", email, role: "superAdmin" },
+            parent: { id: 5, name: "Parent User", email, role: "parent", parentPhone: TEST_CREDENTIALS.parent.parentPhone },
         };
 
         return {
@@ -124,7 +127,8 @@ const Login = () => {
         } else if (
             userType === "teacher" ||
             userType === "admin" ||
-            userType === "superAdmin"
+            userType === "superAdmin" ||
+            userType === "parent"
         ) {
             if (!formData.email) {
                 setError("Please enter email");
@@ -202,6 +206,9 @@ const Login = () => {
                         break;
                     case "user":
                         navigate("/student");
+                        break;
+                    case "parent":
+                        navigate("/parent");
                         break;
                     case "superAdmin":
                         navigate("/super-admin");

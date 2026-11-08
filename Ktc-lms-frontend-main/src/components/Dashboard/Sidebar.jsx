@@ -50,24 +50,37 @@ export default function Sidebar({ isOpen, onClose, children }) {
                                 Menu
                             </h3>
                             <ul className="space-y-1">
-                                {menuItems.map((item) => (
-                                    <li key={item.path}>
-                                        <NavLink
-                                            to={item.path}
-                                            end={item.path === "/"}
-                                            className={({ isActive }) =>
-                                                `flex items-center px-4 py-2 rounded-md transition-colors duration-200 ${
-                                                    isActive
-                                                        ? "bg-gray-700 text-white shadow-md"
-                                                        : "text-gray-300 hover:bg-[#3a3a3a] hover:text-white"
-                                                }`
-                                            }
-                                        >
-                                            <item.icon className="w-5 h-5 mr-3" />
-                                            {item.title}
-                                        </NavLink>
-                                    </li>
-                                ))}
+                                {menuItems.map((item) => {
+                                    // Convert relative paths to absolute paths within the role context
+                                    const getFullPath = () => {
+                                        if (item.path === "/") return "/";
+                                        if (user?.role === "teacher") return `/teacher/${item.path}`;
+                                        if (user?.role === "admin") return `/admin/${item.path}`;
+                                        if (user?.role === "user") return `/student/${item.path}`;
+                                        if (user?.role === "parent") return `/parent/${item.path}`;
+                                        if (user?.role === "superAdmin") return `/superadmin/${item.path}`;
+                                        return item.path;
+                                    };
+
+                                    return (
+                                        <li key={item.path}>
+                                            <NavLink
+                                                to={getFullPath()}
+                                                end={item.path === "/"}
+                                                className={({ isActive }) =>
+                                                    `flex items-center px-4 py-2 rounded-md transition-colors duration-200 ${
+                                                        isActive
+                                                            ? "bg-gray-700 text-white shadow-md"
+                                                            : "text-gray-300 hover:bg-[#3a3a3a] hover:text-white"
+                                                    }`
+                                                }
+                                            >
+                                                <item.icon className="w-5 h-5 mr-3" />
+                                                {item.title}
+                                            </NavLink>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </nav>
                     </div>
