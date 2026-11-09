@@ -1,15 +1,19 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import { getStudentFeeDetails, getStudentUpcomingFees } from "../../lib/dataHelpers";
 import { students } from "../../data/students";
 import { feeAddOns, paymentPlans, baseFeesByClass } from "../../data/fees";
 import { Download, ArrowLeft, ShoppingCart } from "lucide-react";
 import PaymentModal from "../Fees/PaymentModal";
+import PaymentTimeline from "./PaymentTimeline";
+import FeeComparison from "./FeeComparison";
 import { generateFeeInvoice, generateChallan } from "../../lib/generateInvoice";
 
 export default function FeeDetails() {
   const { studentId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState("quarterly");
   const [selectedAddOns, setSelectedAddOns] = useState([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -17,6 +21,9 @@ export default function FeeDetails() {
   const student = students.find(s => s.id === parseInt(studentId));
   const feeDetails = getStudentFeeDetails(parseInt(studentId));
   const upcomingFees = getStudentUpcomingFees(parseInt(studentId));
+
+  // Get parent email from phone
+  const parentEmail = user?.parentPhone ? `parent${user.parentPhone.slice(-4)}@ktcmail.com` : "";
 
   if (!student || !feeDetails) {
     return <div className="p-6">Loading...</div>;
@@ -270,6 +277,12 @@ export default function FeeDetails() {
         </div>
       </div>
 
+      {/* Payment Timeline */}
+      <PaymentTimeline fees={feeDetails} plan={selectedPlan} />
+
+      {/* Fee Comparison */}
+      <FeeComparison currentFee={finalAmount} lastYearFee={baseFeesByClass[student.class] * 0.92} />
+
       {/* Upcoming Fees */}
       {upcomingFees.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6">
@@ -295,6 +308,8 @@ export default function FeeDetails() {
           amount={finalAmount}
           studentName={student.name}
           onClose={() => setShowPaymentModal(false)}
+          parentPhone={user?.parentPhone}
+          parentEmail={parentEmail}
         />
       )}
     </div>

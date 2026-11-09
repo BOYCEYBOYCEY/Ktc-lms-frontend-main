@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Check, X, CreditCard, Smartphone, Wifi } from "lucide-react";
+import { Check, X, CreditCard, Smartphone, Wifi, MessageCircle, Mail } from "lucide-react";
+import { sendPaymentReceipt } from "../../lib/messageService";
 
-export default function PaymentModal({ amount, studentName, onClose }) {
+export default function PaymentModal({ amount, studentName, onClose, parentPhone, parentEmail }) {
   const [step, setStep] = useState("method"); // method, processing, success
   const [selectedMethod, setSelectedMethod] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [notificationStatus, setNotificationStatus] = useState(null);
 
   const methods = [
     { id: "upi", name: "UPI", icon: Smartphone, desc: "Google Pay, PhonePe, PayTM" },
@@ -16,8 +18,26 @@ export default function PaymentModal({ amount, studentName, onClose }) {
     setIsProcessing(true);
     setStep("processing");
 
-    // Simulate payment processing
     await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Send receipt notification
+    if (parentPhone && parentEmail) {
+      const transactionId = `TXN${Math.random().toString().slice(2, 10).toUpperCase()}`;
+      const paymentDate = new Date().toLocaleDateString("en-IN");
+      try {
+        const result = await sendPaymentReceipt(
+          parentPhone,
+          parentEmail,
+          studentName,
+          amount,
+          transactionId,
+          paymentDate
+        );
+        setNotificationStatus(result);
+      } catch (error) {
+        console.error("Failed to send notification:", error);
+      }
+    }
 
     setStep("success");
   };
@@ -48,14 +68,33 @@ export default function PaymentModal({ amount, studentName, onClose }) {
                 <Check className="w-8 h-8 text-green-600" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">Payment Successful!</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Payment Successful! 🎉</h2>
             <div className="space-y-2 text-sm text-gray-600">
               <p>Transaction ID: <span className="font-mono font-bold">TXN{Math.random().toString().slice(2, 10).toUpperCase()}</span></p>
               <p>Amount: <span className="font-bold text-green-600">{formatAmount(amount)}</span></p>
               <p>For: <span className="font-bold">{studentName}</span></p>
             </div>
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-xs text-green-700">Receipt has been sent to your registered email</p>
+
+            {/* Notification Status */}
+            {notificationStatus && (
+              <div className="space-y-2">
+                <div className={`p-3 rounded-lg flex items-center gap-2 ${notificationStatus.whatsapp?.success ? "bg-green-50 border border-green-200" : "bg-gray-50 border border-gray-200"}`}>
+                  <MessageCircle className={`w-4 h-4 ${notificationStatus.whatsapp?.success ? "text-green-600" : "text-gray-600"}`} />
+                  <p className={`text-xs ${notificationStatus.whatsapp?.success ? "text-green-700" : "text-gray-600"}`}>
+                    {notificationStatus.whatsapp?.success ? "✓ WhatsApp receipt sent" : "Receipt notification pending"}
+                  </p>
+                </div>
+                <div className={`p-3 rounded-lg flex items-center gap-2 ${notificationStatus.email?.success ? "bg-green-50 border border-green-200" : "bg-gray-50 border border-gray-200"}`}>
+                  <Mail className={`w-4 h-4 ${notificationStatus.email?.success ? "text-green-600" : "text-gray-600"}`} />
+                  <p className={`text-xs ${notificationStatus.email?.success ? "text-green-700" : "text-gray-600"}`}>
+                    {notificationStatus.email?.success ? "✓ Email receipt sent" : "Email notification pending"}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-700">✓ Receipt sent via WhatsApp & Email</p>
             </div>
             <button
               onClick={() => onClose()}

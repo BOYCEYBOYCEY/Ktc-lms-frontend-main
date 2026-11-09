@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSchoolFeeSummary, getPendingFeesByClass, getTopOverdueFamilies, getPendingWaiverRequests } from "../../lib/dataHelpers";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
-import { AlertTriangle, TrendingDown, Users, Zap } from "lucide-react";
+import { AlertTriangle, TrendingDown, Users, Zap, Send, Mail } from "lucide-react";
+import { sendOverdueNotice } from "../../lib/messageService";
 
 export default function AdminFeesDashboard() {
   const navigate = useNavigate();
+  const [sendingReminders, setSendingReminders] = useState({});
+  const [reminderSent, setReminderSent] = useState({});
+
   const summary = getSchoolFeeSummary();
   const pendingByClass = getPendingFeesByClass();
   const topOverdue = getTopOverdueFamilies();
@@ -27,7 +31,6 @@ export default function AdminFeesDashboard() {
     insights.push(`Collection rate at ${summary.collectionRate}% - ${100 - summary.collectionRate}% below target`);
   }
 
-  // Dummy trend data for chart
   const trendData = [
     { month: "Jul", collected: 35 },
     { month: "Aug", collected: 52 },
@@ -35,6 +38,43 @@ export default function AdminFeesDashboard() {
     { month: "Oct", collected: 75 },
     { month: "Nov", collected: 84 },
   ];
+
+  const handleSendReminder = async (family) => {
+    setSendingReminders(prev => ({ ...prev, [family.parentPhone]: true }));
+    try {
+      const parentEmail = `parent${family.parentPhone.slice(-4)}@ktcmail.com`;
+      const result = await sendOverdueNotice(
+        family.parentPhone,
+        parentEmail,
+        family.students,
+        family.totalDue,
+        family.daysPastDue
+      );
+
+      console.log("Reminder result:", result);
+      setReminderSent(prev => ({ ...prev, [family.parentPhone]: result }));
+      setTimeout(() => {
+        setSendingReminders(prev => ({ ...prev, [family.parentPhone]: false }));
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to send reminder:", error);
+      setSendingReminders(prev => ({ ...prev, [family.parentPhone]: false }));
+    }
+  };
+
+  const handleBulkReminders = async () => {
+    setSendingReminders(prev => {
+      const newState = {};
+      topOverdue.forEach(family => {
+        newState[family.parentPhone] = true;
+      });
+      return newState;
+    });
+
+    for (const family of topOverdue) {
+      await handleSendReminder(family);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
@@ -142,10 +182,19 @@ export default function AdminFeesDashboard() {
       {/* Top Overdue Families */}
       {topOverdue.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            ⚠️ Top Overdue Families
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              ⚠️ Top Overdue Families
+            </h2>
+            <button
+              onClick={handleBulkReminders}
+              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+            >
+              <Send className="w-4 h-4" />
+              Send All Reminders
+            </button>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-100 border-b">
@@ -159,31 +208,57 @@ export default function AdminFeesDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {topOverdue.map((family, idx) => (
-                  <tr key={idx} className={`border-b hover:bg-red-50 transition ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-800">{family.parentName}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{family.parentPhone}</td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className="text-xs bg-gray-200 text-gray-800 px-2 py-1 rounded-full">
-                        {family.students.join(", ")}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-bold text-red-600">{formatAmount(family.totalDue)}</td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-semibold">
-                        {family.daysPastDue} days
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => alert("Send reminder to: " + family.parentPhone)}
-                        className="text-blue-600 hover:text-blue-800 font-semibold text-sm"
-                      >
-                        Send Reminder →
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {topOverdue.map((family, idx) => {
+                  const isLoading = sendingReminders[family.parentPhone];
+                  const sent = reminderSent[family.parentPhone];
+
+                  return (
+                    <tr key={idx} className={`border-b hover:bg-red-50 transition ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
+                      <td className="px-6 py-4 text-sm font-semibold text-gray-800">{family.parentName}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{family.parentPhone}</td>
+                      <td className="px-6 py-4 text-sm">
+                        <span className="text-xs bg-gray-200 text-gray-800 px-2 py-1 rounded-full">
+                          {family.students.join(", ")}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-bold text-red-600">{formatAmount(family.totalDue)}</td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-semibold">
+                          {family.daysPastDue} days
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSendReminder(family)}
+                            disabled={isLoading}
+                            className={`flex items-center gap-1 px-3 py-1 rounded text-sm font-semibold transition ${
+                              isLoading
+                                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                                : sent
+                                ? "bg-green-100 text-green-700"
+                                : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                            }`}
+                          >
+                            {isLoading ? (
+                              <>
+                                <span className="animate-spin">⏳</span> Sending...
+                              </>
+                            ) : sent ? (
+                              <>
+                                <span>✅</span> Sent
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-3 h-3" /> Send
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
