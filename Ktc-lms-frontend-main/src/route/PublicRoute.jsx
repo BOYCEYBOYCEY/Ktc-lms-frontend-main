@@ -6,12 +6,12 @@ export default function PublicRoute() {
 
     if (!isAuthenticated) return <Outlet />;
 
-    // Redirect authenticated users
+    // Redirect authenticated users based on role
     if (user?.role === "user") return <Navigate to="/student" replace />;
     if (user?.role === "teacher") return <Navigate to="/teacher" replace />;
     if (user?.role === "admin") return <Navigate to="/admin" replace />;
-    if (user?.role === "superAdmin")
-        return <Navigate to="/super-admin" replace />;
+    if (user?.role === "parent") return <Navigate to="/parent" replace />;
+    if (user?.role === "superAdmin") return <Navigate to="/super-admin" replace />;
 
     return <Navigate to="/login" replace />;
 }

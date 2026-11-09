@@ -43,8 +43,10 @@ const Login = () => {
     const navigate = useNavigate();
 
     const fillTestCredentials = (role) => {
+        console.log("🔘 TEST BUTTON CLICKED - Role selected:", role);
         handleUserTypeSelect(role);
         const creds = TEST_CREDENTIALS[role];
+        console.log("🔘 Credentials for role:", creds);
         if (role === "student") {
             setFormData({
                 email: "",
@@ -58,6 +60,7 @@ const Login = () => {
                 admission_number: "",
             });
         }
+        console.log("🔘 Form data set for role:", role);
     };
 
     useEffect(() => {
@@ -196,24 +199,35 @@ const Login = () => {
 
                 login(token, user);
 
+                // Debug: Log user object and role
+                console.log("🔐 LOGIN SUCCESS - User Object:", user);
+                console.log("🔐 User Role:", user.role);
+                console.log("🔐 User Role Type:", typeof user.role);
+
                 // Redirect based on role
                 switch (user.role) {
                     case "admin":
+                        console.log("✅ Redirecting to /admin");
                         navigate("/admin");
                         break;
                     case "teacher":
+                        console.log("✅ Redirecting to /teacher");
                         navigate("/teacher");
                         break;
                     case "user":
+                        console.log("✅ Redirecting to /student");
                         navigate("/student");
                         break;
                     case "parent":
+                        console.log("✅ Redirecting to /parent");
                         navigate("/parent");
                         break;
                     case "superAdmin":
+                        console.log("✅ Redirecting to /super-admin");
                         navigate("/super-admin");
                         break;
                     default:
+                        console.log("❌ No matching role, redirecting to /");
                         navigate("/");
                 }
             } else {
@@ -588,6 +602,25 @@ const Login = () => {
                                     Super Admin
                                 </span>
                             </div>
+
+                            {/* Parent */}
+                            <div
+                                className={`flex flex-col items-center p-2 cursor-pointer transition-all duration-300 hover:scale-105 ${
+                                    userType === "parent"
+                                        ? "ring-2 ring-[#049dd9] rounded-lg"
+                                        : ""
+                                }`}
+                                onClick={() => handleUserTypeSelect("parent")}
+                            >
+                                <img
+                                    src={AdminAvtar}
+                                    alt="Parent"
+                                    className="w-[90px] h-[90px] rounded-full object-cover"
+                                />
+                                <span className="text-sm text-gray-600 font-medium mt-2">
+                                    Parent
+                                </span>
+                            </div>
                         </div>
 
                         {/* Quick Login Buttons (Dev/Test Only) */}
@@ -619,6 +652,13 @@ const Login = () => {
                                 className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-1 px-2 rounded transition-colors"
                             >
                                 Test: SuperAdmin
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => fillTestCredentials("parent")}
+                                className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-1 px-2 rounded transition-colors"
+                            >
+                                Test: Parent
                             </button>
                         </div>
                     </div>

@@ -10,21 +10,72 @@ export default function ParentHome() {
   const { user } = useAuth();
   const [selectedChild, setSelectedChild] = useState(null);
 
-  const children = getParentChildren(user.parentPhone);
+  console.log("📍 ParentHome Mounted");
+  console.log("👤 User from Auth:", user);
+
+  if (!user) {
+    console.error("❌ No user in auth context");
+    return (
+      <div className="p-6 text-center bg-red-50 rounded-lg">
+        <p className="text-red-600 font-bold">Error: User not authenticated</p>
+      </div>
+    );
+  }
+
+  if (!user.parentPhone) {
+    console.error("❌ No parentPhone in user object:", user);
+    return (
+      <div className="p-6 text-center bg-red-50 rounded-lg">
+        <p className="text-red-600 font-bold">Error: Parent phone not found</p>
+        <p className="text-gray-600 text-sm mt-2">User object: {JSON.stringify(user, null, 2)}</p>
+      </div>
+    );
+  }
+
+  console.log("✅ Parent phone found:", user.parentPhone);
+
+  let children = [];
+  try {
+    children = getParentChildren(user.parentPhone);
+    console.log("✅ Children retrieved:", children);
+  } catch (error) {
+    console.error("❌ Error getting children:", error);
+    return (
+      <div className="p-6 text-center bg-red-50 rounded-lg">
+        <p className="text-red-600 font-bold">Error loading children data</p>
+        <p className="text-gray-600 text-sm mt-2">{error.message}</p>
+      </div>
+    );
+  }
 
   React.useEffect(() => {
     if (children.length > 0 && !selectedChild) {
+      console.log("✅ Setting first child:", children[0]);
       setSelectedChild(children[0]);
     }
   }, [children, selectedChild]);
 
   if (!selectedChild) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6 text-center text-gray-600">Loading student data...</div>;
   }
 
+  console.log("✅ Selected child:", selectedChild);
+
   const fees = selectedChild.fees;
+  console.log("✅ Fees for child:", fees);
+
+  if (!fees) {
+    return (
+      <div className="p-6 text-center bg-yellow-50 rounded-lg">
+        <p className="text-yellow-600 font-bold">No fee data available for this student</p>
+      </div>
+    );
+  }
+
   const upcomingFees = getStudentUpcomingFees(selectedChild.id);
   const recentPayments = (paymentHistory[selectedChild.id] || []).slice(-2);
+
+  console.log("✅ All data loaded successfully");
 
   const formatAmount = (amount) => {
     return `₹${amount.toLocaleString("en-IN")}`;

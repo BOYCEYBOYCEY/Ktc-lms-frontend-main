@@ -94,6 +94,18 @@ export default function Main() {
                             <Route path="at-risk-list" element={<AtRiskListPage />} />
                         </Route>
                     </Route>
+
+                    {/* SuperAdmin - Redirect to Admin for now */}
+                    <Route
+                        path="/super-admin/*"
+                        element={<Navigate to="/admin" replace />}
+                    />
+
+                    {/* Catch all - Redirect to login */}
+                    <Route
+                        path="*"
+                        element={<Navigate to="/login" replace />}
+                    />
                 </Routes>
             </AuthProvider>
         </BrowserRouter>

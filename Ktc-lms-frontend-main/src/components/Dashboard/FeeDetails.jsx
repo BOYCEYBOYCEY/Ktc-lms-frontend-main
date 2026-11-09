@@ -165,63 +165,98 @@ export default function FeeDetails() {
               </div>
             </div>
 
-            {/* Discounts */}
-            <div className="space-y-2 text-sm border-b pb-4">
-              {plan.discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Payment Plan Discount</span>
-                  <span>-{formatAmount(discountAmount)}</span>
+            {/* Discounts - IMPROVED VISIBILITY */}
+            {(plan.discount > 0 || feeDetails.siblingDiscount > 0 || feeDetails.totalWaiverDiscount > 0) && (
+              <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200 space-y-2">
+                <p className="text-sm font-bold text-green-800 mb-2">💰 Your Savings:</p>
+                {plan.discount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-700">• {plan.label} Plan ({(plan.discount * 100).toFixed(0)}% off)</span>
+                    <span className="font-bold text-green-700">-{formatAmount(discountAmount)}</span>
+                  </div>
+                )}
+                {feeDetails.siblingDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-700">• Sibling Discount ({(feeDetails.siblingDiscount * 100).toFixed(0)}% off)</span>
+                    <span className="font-bold text-green-700">-{formatAmount(siblingDiscountAmount)}</span>
+                  </div>
+                )}
+                {feeDetails.totalWaiverDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-700">• Scholarship/Waiver ({feeDetails.totalWaiverDiscount}% off)</span>
+                    <span className="font-bold text-green-700">-{formatAmount(waiverDiscountAmount)}</span>
+                  </div>
+                )}
+                <div className="border-t border-green-300 pt-2 mt-2">
+                  <div className="flex justify-between text-base font-bold">
+                    <span className="text-green-800">Total Savings:</span>
+                    <span className="text-green-800">-{formatAmount(discountAmount + siblingDiscountAmount + waiverDiscountAmount)}</span>
+                  </div>
                 </div>
-              )}
-              {feeDetails.siblingDiscount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Sibling Discount (#{feeDetails.siblingDiscount * 100 | 0}%)</span>
-                  <span>-{formatAmount(siblingDiscountAmount)}</span>
-                </div>
-              )}
-              {feeDetails.totalWaiverDiscount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Scholarship/Waiver</span>
-                  <span>-{formatAmount(waiverDiscountAmount)}</span>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Total */}
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Total Due</p>
-              <p className="text-3xl font-bold text-blue-600">{formatAmount(finalAmount)}</p>
-              <p className="text-xs text-gray-600 mt-2">
-                {plan.terms === 1
-                  ? "Single payment"
-                  : `${plan.terms} payments of ${formatAmount(amountPerTerm)}`
-                }
-              </p>
+            {/* Total - IMPROVED VISIBILITY */}
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-xl shadow-lg">
+              <p className="text-sm text-blue-100 mb-2">💳 Total Amount Due</p>
+              <p className="text-4xl font-bold text-white mb-1">{formatAmount(finalAmount)}</p>
+              <div className="bg-blue-400/30 rounded-lg p-2 mt-3">
+                <p className="text-xs text-blue-50">
+                  {plan.terms === 1
+                    ? "✓ Pay once for the full year"
+                    : `✓ ${plan.terms} installments of ${formatAmount(amountPerTerm)} each`
+                  }
+                </p>
+              </div>
+              {subtotal > finalAmount && (
+                <div className="mt-3 pt-3 border-t border-blue-400">
+                  <p className="text-xs text-blue-100">Original: {formatAmount(subtotal)}</p>
+                  <p className="text-sm font-bold text-green-300">You save: {formatAmount(subtotal - finalAmount)}</p>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
             <div className="space-y-2">
               <button
-                onClick={() => generateFeeInvoice(student, {
-                  baseFee,
-                  addOns: selectedAddOns,
-                  subtotal,
-                  discountAmount,
-                  siblingDiscountAmount,
-                  waiverDiscountAmount,
-                  finalAmount,
-                })}
+                onClick={() => {
+                  try {
+                    console.log("🧾 Generating fee invoice...");
+                    generateFeeInvoice(student, {
+                      baseFee,
+                      addOns: selectedAddOns,
+                      subtotal,
+                      discountAmount,
+                      siblingDiscountAmount,
+                      waiverDiscountAmount,
+                      finalAmount,
+                    });
+                    console.log("✅ Invoice generated successfully");
+                  } catch (error) {
+                    console.error("❌ Invoice generation failed:", error);
+                    alert("Failed to generate invoice: " + error.message);
+                  }
+                }}
                 className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
               >
                 <Download className="w-4 h-4" />
-                Download Invoice
+                Generate Fee Statement
               </button>
               <button
-                onClick={() => generateChallan(student, finalAmount)}
+                onClick={() => {
+                  try {
+                    console.log("🧾 Generating challan...");
+                    generateChallan(student, finalAmount);
+                    console.log("✅ Challan generated successfully");
+                  } catch (error) {
+                    console.error("❌ Challan generation failed:", error);
+                    alert("Failed to generate challan: " + error.message);
+                  }
+                }}
                 className="w-full flex items-center justify-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition"
               >
                 <Download className="w-4 h-4" />
-                Download Challan
+                Generate Bank Challan
               </button>
               <button
                 onClick={() => setShowPaymentModal(true)}

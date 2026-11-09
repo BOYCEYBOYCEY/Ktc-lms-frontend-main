@@ -77,9 +77,6 @@ export const studentMenuItems = [
 
 export const parentMenuItems = [
     { title: "Dashboard", path: "/", icon: MdDashboard },
-    { title: "Fees", path: "fees/:studentId", icon: MdPeople },
-    { title: "Payment History", path: "payment-history/:studentId", icon: MdBarChart },
-    { title: "Request Waiver", path: "waiver-request/:studentId", icon: MdHelp },
     { title: "Messages", path: "messages", icon: MdMessage },
 ];
 
