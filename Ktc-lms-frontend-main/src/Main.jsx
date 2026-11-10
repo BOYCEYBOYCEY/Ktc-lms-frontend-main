@@ -27,6 +27,8 @@ import PaymentHistory from "./components/Dashboard/PaymentHistory";
 import AdminFeesDashboard from "./components/Dashboard/AdminFeesDashboard";
 import FeeWaiverApproval from "./components/Dashboard/Admin/FeeWaiverApproval";
 import FeeWaiverRequest from "./components/Dashboard/FeeWaiverRequest";
+import ParentLedger from "./components/Dashboard/ParentLedger";
+import AdminLedgerViewer from "./components/Dashboard/AdminLedgerViewer";
 
 export default function Main() {
 
@@ -62,6 +64,8 @@ export default function Main() {
                             <Route index element={<ParentHome />} />
                             <Route path="fees/:studentId" element={<FeeDetails />} />
                             <Route path="payment-history/:studentId" element={<PaymentHistory />} />
+                            <Route path="ledger" element={<ParentLedger />} />
+                            <Route path="ledger/:studentId" element={<ParentLedger />} />
                             <Route path="waiver-request/:studentId" element={<FeeWaiverRequest />} />
                             <Route path="messages" element={<Messages />} />
                         </Route>
@@ -76,6 +80,7 @@ export default function Main() {
                             <Route path="add-class" element={<AddClassSections />} />
                             <Route path="class/:className" element={<ClassDetailPage />} />
                             <Route path="fees" element={<AdminFeesDashboard />} />
+                            <Route path="ledger" element={<AdminLedgerViewer />} />
                             <Route path="waiver-approvals" element={<FeeWaiverApproval />} />
                         </Route>
                     </Route>

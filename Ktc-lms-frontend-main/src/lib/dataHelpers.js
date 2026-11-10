@@ -269,3 +269,215 @@ export const calculateLateFee = (pendingAmount, daysPastDue) => {
   const daysToCharge = Math.min(daysPastDue, LATE_FEE_MAX_DAYS);
   return daysToCharge * LATE_FEE_PER_DAY;
 };
+
+// ============ LEDGER SYSTEM (NEW) ============
+
+// Generate comprehensive ledger for a student
+export const getStudentLedger = (studentId) => {
+  const student = students.find(s => s.id === studentId);
+  if (!student) return null;
+
+  const feeRecord = studentFees[studentId];
+  if (!feeRecord) return null;
+
+  const history = paymentHistory[studentId] || [];
+  const waivers = feeWaivers.filter(w => w.studentId === studentId);
+
+  const ledgerEntries = [];
+  let runningBalance = 0;
+
+  // Opening balance (first charge date)
+  const chargeDate = new Date();
+  chargeDate.setMonth(5); // June = start of academic year
+  chargeDate.setDate(1);
+
+  // 1. Add initial fee charge
+  const baseFee = Math.max(0, feeRecord.discountedTotal || 0);
+  const addOnsArray = Array.isArray(feeRecord.addOns) ? feeRecord.addOns : [];
+
+  ledgerEntries.push({
+    id: `CHARGE-${studentId}-0`,
+    date: chargeDate.toISOString().split('T')[0],
+    type: 'fee_charge',
+    description: `Annual Fee Charged (${addOnsArray.length > 0 ? 'with add-ons' : 'base only'})`,
+    debit: baseFee,
+    credit: 0,
+    runningBalance: 0,
+    details: {
+      baseFee: Math.max(0, feeRecord.baseFee || 0),
+      addOns: addOnsArray,
+      discountPercentage: Math.max(0, feeRecord.discountPercentage || 0),
+    },
+  });
+  runningBalance = baseFee;
+
+  // 2. Add approved waivers/scholarships
+  const approvedWaivers = waivers.filter(w => w.status === 'approved');
+  approvedWaivers.forEach((waiver, idx) => {
+    const waiverDate = new Date(waiver.approvalDate || chargeDate);
+    const discountAmount = Math.max(0, (baseFee * (waiver.discountPercentage || waiver.requestedDiscount || 0)) / 100);
+
+    ledgerEntries.push({
+      id: `WAIVER-${studentId}-${idx}`,
+      date: waiverDate.toISOString().split('T')[0],
+      type: 'waiver',
+      description: `${waiver.type} Approved (${waiver.reason})`,
+      debit: 0,
+      credit: discountAmount,
+      runningBalance: 0,
+      details: waiver,
+    });
+    runningBalance -= discountAmount;
+  });
+
+  // 3. Add payments (chronologically sorted)
+  if (Array.isArray(history)) {
+    history.sort((a, b) => new Date(a.paymentDate) - new Date(b.paymentDate)).forEach(payment => {
+      const paymentAmount = Math.max(0, payment.amount || 0);
+      ledgerEntries.push({
+        id: payment.id,
+        date: payment.paymentDate,
+        type: 'payment',
+        description: `Payment Received - ${payment.method || 'Unknown'}`,
+        debit: 0,
+        credit: paymentAmount,
+        runningBalance: 0,
+        details: {
+          transactionId: payment.transactionId || 'N/A',
+          method: payment.method || 'N/A',
+          term: payment.term || 'N/A',
+        },
+      });
+      runningBalance -= paymentAmount;
+    });
+  }
+
+  // 4. Add late fees (if overdue)
+  const lateFeeAmount = Math.max(0, feeRecord.lateFee || 0);
+  if (feeRecord.status === 'overdue' && lateFeeAmount > 0) {
+    const lateFeeDate = new Date(feeRecord.dueDate);
+    lateFeeDate.setDate(lateFeeDate.getDate() + 30);
+    const daysPastDue = Math.max(0, Math.floor((Date.now() - new Date(feeRecord.dueDate).getTime()) / (1000 * 60 * 60 * 24)));
+
+    ledgerEntries.push({
+      id: `LATEFEE-${studentId}`,
+      date: lateFeeDate.toISOString().split('T')[0],
+      type: 'late_fee',
+      description: `Late Fee Applied (₹${LATE_FEE_PER_DAY}/day for ${Math.min(daysPastDue, 30)} days)`,
+      debit: lateFeeAmount,
+      credit: 0,
+      runningBalance: 0,
+      details: {
+        dailyRate: LATE_FEE_PER_DAY,
+        daysPastDue,
+      },
+    });
+    runningBalance += lateFeeAmount;
+  }
+
+  // Sort by date
+  ledgerEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  // Recalculate running balances after sorting
+  runningBalance = 0;
+  ledgerEntries.forEach(entry => {
+    runningBalance = runningBalance + entry.debit - entry.credit;
+    entry.runningBalance = Math.max(0, runningBalance);
+  });
+
+  const totalWaived = approvedWaivers.reduce((sum, w) => sum + Math.max(0, (baseFee * (w.discountPercentage || w.requestedDiscount || 0)) / 100), 0);
+  const totalPaid = Array.isArray(history) ? history.reduce((sum, p) => sum + Math.max(0, p.amount || 0), 0) : 0;
+
+  return {
+    student,
+    feeRecord,
+    ledgerEntries,
+    summary: {
+      totalCharged: baseFee,
+      totalWaived,
+      totalPaid,
+      lateFees: lateFeeAmount,
+      currentBalance: Math.max(0, runningBalance),
+      paymentStatus: feeRecord.status || 'unknown',
+    },
+  };
+};
+
+// Get ledger for all families (admin view)
+export const getAllFamilyLedgers = () => {
+  const familyLedgers = {};
+
+  Object.entries(studentFees).forEach(([studentIdStr, feeRecord]) => {
+    const studentId = parseInt(studentIdStr);
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+
+    const parentPhone = student.parentPhone;
+    if (!familyLedgers[parentPhone]) {
+      familyLedgers[parentPhone] = {
+        parentName: student.parentName,
+        parentPhone,
+        children: [],
+        familyLedger: [],
+        totalBalance: 0,
+        paymentTrend: 'unknown',
+      };
+    }
+
+    const ledger = getStudentLedger(studentId);
+    if (ledger) {
+      familyLedgers[parentPhone].children.push({
+        id: student.id,
+        name: student.name,
+        class: student.class,
+        balance: ledger.summary.currentBalance,
+      });
+      familyLedgers[parentPhone].totalBalance += ledger.summary.currentBalance;
+      familyLedgers[parentPhone].familyLedger.push(...ledger.ledgerEntries);
+    }
+  });
+
+  // Calculate payment trends
+  Object.values(familyLedgers).forEach(family => {
+    const payments = family.familyLedger.filter(e => e.type === 'payment');
+    if (payments.length === 0) {
+      family.paymentTrend = 'no_payment';
+    } else {
+      const recentPayments = payments.slice(-3);
+      const avgDaysApart = recentPayments.length > 1
+        ? Math.round((new Date(recentPayments[recentPayments.length - 1].date) - new Date(recentPayments[0].date)) / (1000 * 60 * 60 * 24) / (recentPayments.length - 1))
+        : 0;
+      family.paymentTrend = avgDaysApart > 120 ? 'late_payer' : 'regular_payer';
+    }
+  });
+
+  return familyLedgers;
+};
+
+// Analyze payment behavior
+export const getPaymentAnalytics = (studentId) => {
+  const ledger = getStudentLedger(studentId);
+  if (!ledger) return null;
+
+  const payments = ledger.ledgerEntries.filter(e => e.type === 'payment');
+  if (payments.length === 0) return { behavior: 'never_paid', onTimePayments: 0, latePayments: 0 };
+
+  const onTimePayments = payments.filter(p => {
+    const paymentDate = new Date(p.date);
+    return paymentDate.getTime() <= new Date(ledger.feeRecord.dueDate).getTime();
+  }).length;
+
+  const latePayments = payments.length - onTimePayments;
+
+  return {
+    behavior: latePayments > payments.length / 2 ? 'late_payer' : 'on_time_payer',
+    totalPayments: payments.length,
+    onTimePayments,
+    latePayments,
+    averageDaysLate: latePayments > 0 ? Math.round(
+      payments
+        .filter(p => new Date(p.date) > new Date(ledger.feeRecord.dueDate))
+        .reduce((sum, p) => sum + Math.floor((new Date(p.date) - new Date(ledger.feeRecord.dueDate)) / (1000 * 60 * 60 * 24)), 0) / latePayments
+    ) : 0,
+  };
+};

@@ -10,6 +10,7 @@ import {
     MdBook,
     MdSettings,
     MdHelp,
+    MdReceipt,
 } from "react-icons/md";
 
 export const adminMenuItems = [
@@ -22,6 +23,7 @@ export const adminMenuItems = [
     { title: "Teacher", path: "assignment", icon: MdAssignment },
     { title: "Student", path: "notification", icon: MdNotifications },
     { title: "Fee", path: "fees", icon: MdPeople },
+    { title: "Fee Ledger", path: "ledger", icon: MdReceipt },
     { title: "Syllabus", path: "messages", icon: MdMessage },
     { title: "Time Table", path: "messages", icon: MdMessage },
     { title: "Homework", path: "messages", icon: MdMessage },
@@ -77,6 +79,7 @@ export const studentMenuItems = [
 
 export const parentMenuItems = [
     { title: "Dashboard", path: "/", icon: MdDashboard },
+    { title: "Fee Ledger", path: "ledger", icon: MdReceipt },
     { title: "Messages", path: "messages", icon: MdMessage },
 ];
 
