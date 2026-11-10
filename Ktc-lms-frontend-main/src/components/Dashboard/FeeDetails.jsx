@@ -4,10 +4,12 @@ import { useAuth } from "../../context/AuthContext";
 import { getStudentFeeDetails, getStudentUpcomingFees } from "../../lib/dataHelpers";
 import { students } from "../../data/students";
 import { feeAddOns, paymentPlans, baseFeesByClass } from "../../data/fees";
-import { Download, ArrowLeft, ShoppingCart } from "lucide-react";
+import { Download, ArrowLeft, ShoppingCart, Split, AlertCircle } from "lucide-react";
 import PaymentModal from "../Fees/PaymentModal";
 import PaymentTimeline from "./PaymentTimeline";
 import FeeComparison from "./FeeComparison";
+import PartialPaymentModal from "./PartialPaymentModal";
+import FeeDisputeResolution from "./FeeDisputeResolution";
 import { generateFeeInvoice, generateChallan } from "../../lib/generateInvoice";
 
 export default function FeeDetails() {
@@ -17,6 +19,8 @@ export default function FeeDetails() {
   const [selectedPlan, setSelectedPlan] = useState("quarterly");
   const [selectedAddOns, setSelectedAddOns] = useState([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showPartialPayment, setShowPartialPayment] = useState(false);
+  const [showDispute, setShowDispute] = useState(false);
 
   const student = students.find(s => s.id === parseInt(studentId));
   const feeDetails = getStudentFeeDetails(parseInt(studentId));
@@ -270,7 +274,21 @@ export default function FeeDetails() {
                 className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition"
               >
                 <ShoppingCart className="w-4 h-4" />
-                Proceed to Payment
+                Pay Full Amount
+              </button>
+              <button
+                onClick={() => setShowPartialPayment(true)}
+                className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+              >
+                <Split className="w-4 h-4" />
+                Split Payment
+              </button>
+              <button
+                onClick={() => setShowDispute(true)}
+                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+              >
+                <AlertCircle className="w-4 h-4" />
+                Report Dispute
               </button>
             </div>
           </div>
@@ -302,7 +320,7 @@ export default function FeeDetails() {
         </div>
       )}
 
-      {/* Payment Modal */}
+      {/* Payment Modals */}
       {showPaymentModal && (
         <PaymentModal
           amount={finalAmount}
@@ -310,6 +328,26 @@ export default function FeeDetails() {
           onClose={() => setShowPaymentModal(false)}
           parentPhone={user?.parentPhone}
           parentEmail={parentEmail}
+        />
+      )}
+
+      {showPartialPayment && (
+        <PartialPaymentModal
+          totalAmount={finalAmount}
+          studentName={student.name}
+          onClose={() => setShowPartialPayment(false)}
+          onPayment={(payments) => {
+            console.log("Partial payment scheduled:", payments);
+            setShowPartialPayment(false);
+          }}
+        />
+      )}
+
+      {showDispute && (
+        <FeeDisputeResolution
+          studentName={student.name}
+          amount={finalAmount}
+          onClose={() => setShowDispute(false)}
         />
       )}
     </div>
