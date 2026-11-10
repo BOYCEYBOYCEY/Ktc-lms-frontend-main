@@ -35,17 +35,14 @@ export default function ParentHome() {
   console.log("✅ Parent phone found:", user.parentPhone);
 
   let children = [];
+  let childrenError = null;
+
   try {
     children = getParentChildren(user.parentPhone);
     console.log("✅ Children retrieved:", children);
   } catch (error) {
     console.error("❌ Error getting children:", error);
-    return (
-      <div className="p-6 text-center bg-red-50 rounded-lg">
-        <p className="text-red-600 font-bold">Error loading children data</p>
-        <p className="text-gray-600 text-sm mt-2">{error.message}</p>
-      </div>
-    );
+    childrenError = error.message;
   }
 
   React.useEffect(() => {
@@ -54,6 +51,15 @@ export default function ParentHome() {
       setSelectedChild(children[0]);
     }
   }, [children, selectedChild]);
+
+  if (childrenError) {
+    return (
+      <div className="p-6 text-center bg-red-50 rounded-lg">
+        <p className="text-red-600 font-bold">Error loading children data</p>
+        <p className="text-gray-600 text-sm mt-2">{childrenError}</p>
+      </div>
+    );
+  }
 
   if (!selectedChild) {
     return <div className="p-6 text-center text-gray-600">Loading student data...</div>;

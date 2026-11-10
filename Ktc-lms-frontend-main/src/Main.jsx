@@ -4,6 +4,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Auth/Login";
 import DashboardLayout from "./components/Dashboard/DashboardLayput";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 import PrivateRoute from "./route/PrivateRoute";
 import PublicRoute from "./route/PublicRoute"; //
@@ -35,9 +36,10 @@ export default function Main() {
     console.log("I am inside Choot");
 
     return (
-        <BrowserRouter>
-            <AuthProvider>
-                <Routes>
+        <ErrorBoundary>
+            <BrowserRouter>
+                <AuthProvider>
+                    <Routes>
                     {/* Default redirect */}
                     <Route
                         path="/"
@@ -111,8 +113,9 @@ export default function Main() {
                         path="*"
                         element={<Navigate to="/login" replace />}
                     />
-                </Routes>
-            </AuthProvider>
-        </BrowserRouter>
+                    </Routes>
+                </AuthProvider>
+            </BrowserRouter>
+        </ErrorBoundary>
     );
 }

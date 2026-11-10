@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 function Messages() {
     const [showModal, setShowModal] = useState(false);
+    const [selectedQuery, setSelectedQuery] = useState(null);
 
     const inboxQueries = [
         {
