@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, Clock, Trophy, CheckCircle, XCircle, Award } from 'lucide-react';
 import { getQuizzesForClass, getStudentQuizAttempts, getQuizLeaderboard } from '../../data/quizzes';
+import { useAuth } from '../../context/AuthContext';
+import { students } from '../../data/students';
 
-const StudentQuiz = ({ student }) => {
+const StudentQuiz = () => {
+  const { user } = useAuth();
+
+  // For demo, map user to a student (in production, user.id would map to student.id)
+  const student = students.find(s => s.id === (user?.id || 1)) || students[0];
   const [selectedTab, setSelectedTab] = useState('available'); // available, completed, leaderboard
   const [activeQuiz, setActiveQuiz] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);

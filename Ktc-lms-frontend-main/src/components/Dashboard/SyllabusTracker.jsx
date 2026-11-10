@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { BookOpen, CheckCircle, Clock, Circle } from 'lucide-react';
 import { getSyllabusForClass, getChapterProgress } from '../../data/syllabus';
+import { useAuth } from '../../context/AuthContext';
+import { students } from '../../data/students';
 
-const SyllabusTracker = ({ student }) => {
+const SyllabusTracker = () => {
+  const { user } = useAuth();
+
+  // For demo, map user to a student (in production, user.id would map to student.id)
+  const student = students.find(s => s.id === (user?.id || 1)) || students[0];
   const [selectedSubject, setSelectedSubject] = useState('Mathematics');
   const syllabus = getSyllabusForClass(student.class);
   const subjects = Object.keys(syllabus);

@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { BookOpen, Calendar, Upload, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { getHomeworkForClass, getSubmissionsForStudent, getPendingHomeworkForStudent } from '../../data/homework';
+import { useAuth } from '../../context/AuthContext';
+import { students } from '../../data/students';
 
-const StudentHomework = ({ student }) => {
+const StudentHomework = () => {
+  const { user } = useAuth();
+
+  // For demo, map user to a student (in production, user.id would map to student.id)
+  const student = students.find(s => s.id === (user?.id || 1)) || students[0];
   const [selectedTab, setSelectedTab] = useState('pending'); // pending, submitted, graded
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [selectedHomework, setSelectedHomework] = useState(null);

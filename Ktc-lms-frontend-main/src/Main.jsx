@@ -30,6 +30,11 @@ import FeeWaiverApproval from "./components/Dashboard/Admin/FeeWaiverApproval";
 import FeeWaiverRequest from "./components/Dashboard/FeeWaiverRequest";
 import ParentLedger from "./components/Dashboard/ParentLedger";
 import AdminLedgerViewer from "./components/Dashboard/AdminLedgerViewer";
+import StudentHomework from "./components/Dashboard/StudentHomework";
+import StudentQuiz from "./components/Dashboard/StudentQuiz";
+import SyllabusTracker from "./components/Dashboard/SyllabusTracker";
+import AcademicCalendar from "./components/Dashboard/AcademicCalendar";
+import DocumentsCenter from "./components/Dashboard/DocumentsCenter";
 
 export default function Main() {
 
@@ -57,6 +62,10 @@ export default function Main() {
                             <Route index element={<StudentHome />} />
                             <Route path="live-class" element={<LiveClass />} />
                             <Route path="messages" element={<Messages />} />
+                            <Route path="homework" element={<StudentHomework />} />
+                            <Route path="quiz" element={<StudentQuiz />} />
+                            <Route path="syllabus" element={<SyllabusTracker />} />
+                            <Route path="calendar" element={<AcademicCalendar />} />
                         </Route>
                     </Route>
 
@@ -70,6 +79,7 @@ export default function Main() {
                             <Route path="ledger/:studentId" element={<ParentLedger />} />
                             <Route path="waiver-request/:studentId" element={<FeeWaiverRequest />} />
                             <Route path="messages" element={<Messages />} />
+                            <Route path="calendar" element={<AcademicCalendar />} />
                         </Route>
                     </Route>
 
@@ -84,6 +94,8 @@ export default function Main() {
                             <Route path="fees" element={<AdminFeesDashboard />} />
                             <Route path="ledger" element={<AdminLedgerViewer />} />
                             <Route path="waiver-approvals" element={<FeeWaiverApproval />} />
+                            <Route path="documents" element={<DocumentsCenter />} />
+                            <Route path="calendar" element={<AcademicCalendar />} />
                         </Route>
                     </Route>
 
@@ -99,6 +111,7 @@ export default function Main() {
                             <Route path="student/:studentId" element={<StudentDetailPage />} />
                             <Route path="class/:className" element={<ClassDetailPage />} />
                             <Route path="at-risk-list" element={<AtRiskListPage />} />
+                            <Route path="calendar" element={<AcademicCalendar />} />
                         </Route>
                     </Route>
 
