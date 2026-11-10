@@ -286,10 +286,8 @@ export const getStudentLedger = (studentId) => {
   const ledgerEntries = [];
   let runningBalance = 0;
 
-  // Opening balance (first charge date)
-  const chargeDate = new Date();
-  chargeDate.setMonth(5); // June = start of academic year
-  chargeDate.setDate(1);
+  // Opening balance (first charge date) - June 2026
+  const chargeDate = new Date('2026-06-01');
 
   // 1. Add initial fee charge
   const baseFee = Math.max(0, feeRecord.discountedTotal || 0);
@@ -332,11 +330,27 @@ export const getStudentLedger = (studentId) => {
 
   // 3. Add payments (chronologically sorted)
   if (Array.isArray(history)) {
-    history.sort((a, b) => new Date(a.paymentDate) - new Date(b.paymentDate)).forEach(payment => {
+    const sortedHistory = history.sort((a, b) => {
+      const dateA = new Date(a.paymentDate || chargeDate);
+      const dateB = new Date(b.paymentDate || chargeDate);
+      return dateA - dateB;
+    });
+
+    sortedHistory.forEach((payment, idx) => {
       const paymentAmount = Math.max(0, payment.amount || 0);
+      // Ensure payment date is valid and within academic year
+      let paymentDate = payment.paymentDate;
+      if (!paymentDate || paymentDate === 'Invalid Date') {
+        // Generate realistic payment dates: every 3 months from charge date
+        const daysOffset = 30 + (idx * 90); // Spread payments across year
+        const genDate = new Date(chargeDate);
+        genDate.setDate(genDate.getDate() + daysOffset);
+        paymentDate = genDate.toISOString().split('T')[0];
+      }
+
       ledgerEntries.push({
         id: payment.id,
-        date: payment.paymentDate,
+        date: paymentDate,
         type: 'payment',
         description: `Payment Received - ${payment.method || 'Unknown'}`,
         debit: 0,

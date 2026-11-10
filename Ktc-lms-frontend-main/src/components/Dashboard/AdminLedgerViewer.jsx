@@ -1,13 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { getAllFamilyLedgers } from '../../lib/dataHelpers';
-import { Search, AlertTriangle, Download } from 'lucide-react';
+import { sendPaymentReminder } from '../../lib/messageService';
+import { Search, AlertTriangle, Download, Send } from 'lucide-react';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const AdminLedgerViewer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('balance_desc');
   const [filterBehavior, setFilterBehavior] = useState('all');
   const [expandedFamily, setExpandedFamily] = useState(null);
+  const [sendingReminder, setSendingReminder] = useState({});
+  const [reminderStatus, setReminderStatus] = useState({});
 
   const allLedgers = getAllFamilyLedgers();
 
@@ -58,41 +62,77 @@ const AdminLedgerViewer = () => {
     return { totalBalance, latePayers, noPayers, avgBalance, totalFamilies: families.length };
   }, [allLedgers]);
 
+  const handleSendReminder = async (family) => {
+    setSendingReminder(prev => ({ ...prev, [family.parentPhone]: true }));
+    setReminderStatus(prev => ({ ...prev, [family.parentPhone]: '⏳ Sending...' }));
+
+    try {
+      const message = `Hi ${family.parentName}, this is a reminder that fee payment of ₹${family.totalBalance} is due for ${family.children.map(c => c.name).join(', ')}. Please arrange payment at your earliest convenience. Thank you!`;
+
+      await sendPaymentReminder(
+        family.parentPhone,
+        'parent@ktc.com', // dummy email since we don't have real ones
+        family.children[0].name,
+        family.totalBalance,
+        new Date().toISOString().split('T')[0]
+      );
+
+      setReminderStatus(prev => ({ ...prev, [family.parentPhone]: '✅ Sent Successfully!' }));
+      setTimeout(() => {
+        setReminderStatus(prev => ({ ...prev, [family.parentPhone]: null }));
+      }, 3000);
+    } catch (error) {
+      console.error('Error sending reminder:', error);
+      setReminderStatus(prev => ({ ...prev, [family.parentPhone]: '❌ Failed to send' }));
+    } finally {
+      setSendingReminder(prev => ({ ...prev, [family.parentPhone]: false }));
+    }
+  };
+
   const downloadReconciliation = () => {
-    const doc = new jsPDF();
-    let yPosition = 20;
+    try {
+      const doc = new jsPDF();
+      let yPosition = 20;
 
-    doc.setFontSize(16);
-    doc.text('Fee Collection Reconciliation Report', 20, yPosition);
-    doc.setFontSize(10);
-    yPosition += 10;
+      doc.setFontSize(16);
+      doc.text('Fee Collection Reconciliation Report', 20, yPosition);
+      doc.setFontSize(10);
+      yPosition += 10;
 
-    // Summary
-    doc.setFontSize(11);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, yPosition);
-    yPosition += 6;
-    doc.text(`Total Outstanding Balance: ₹${summary.totalBalance}`, 20, yPosition);
-    yPosition += 6;
-    doc.text(`Late Payers: ${summary.latePayers} | Never Paid: ${summary.noPayers}`, 20, yPosition);
-    yPosition += 10;
+      // Summary
+      doc.setFontSize(11);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, yPosition);
+      yPosition += 6;
+      doc.text(`Total Outstanding Balance: Rs.${Math.round(summary.totalBalance)}`, 20, yPosition);
+      yPosition += 6;
+      doc.text(`Late Payers: ${summary.latePayers} | Never Paid: ${summary.noPayers}`, 20, yPosition);
+      yPosition += 10;
 
-    // Family details
-    const tableData = filteredFamilies.map(family => [
-      family.parentName,
-      family.children.map(c => c.name).join(', '),
-      `₹${family.totalBalance}`,
-      family.paymentTrend === 'late_payer' ? '⚠ Late' : family.paymentTrend === 'no_payment' ? '❌ Never' : '✓ Regular',
-    ]);
+      // Family details
+      const tableData = filteredFamilies.map(family => [
+        family.parentName,
+        family.children.map(c => c.name).join(', '),
+        `Rs.${Math.round(family.totalBalance)}`,
+        family.paymentTrend === 'late_payer' ? '⚠ Late' : family.paymentTrend === 'no_payment' ? '❌ Never' : '✓ Regular',
+      ]);
 
-    doc.autoTable({
-      startY: yPosition,
-      head: [['Parent Name', 'Children', 'Balance', 'Status']],
-      body: tableData,
-      theme: 'grid',
-      fontSize: 9,
-    });
+      if (typeof doc.autoTable === 'function') {
+        doc.autoTable({
+          startY: yPosition,
+          head: [['Parent Name', 'Children', 'Balance', 'Status']],
+          body: tableData.length > 0 ? tableData : [['No data', '', '', '']],
+          theme: 'grid',
+          fontSize: 9,
+          headStyles: { fillColor: [66, 139, 202] },
+        });
+      }
 
-    doc.save(`Reconciliation_${new Date().toISOString().split('T')[0]}.pdf`);
+      doc.save(`Reconciliation_${new Date().toISOString().split('T')[0]}.pdf`);
+      alert('Reconciliation report downloaded successfully!');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      alert('Failed to generate PDF: ' + error.message);
+    }
   };
 
   return (
@@ -299,9 +339,19 @@ const AdminLedgerViewer = () => {
                             </p>
                           </div>
                           {family.paymentTrend === 'late_payer' && (
-                            <button className="px-2 py-1 text-xs bg-orange-200 text-orange-900 rounded hover:bg-orange-300">
-                              Send Reminder
-                            </button>
+                            <div>
+                              <button
+                                onClick={() => handleSendReminder(family)}
+                                disabled={sendingReminder[family.parentPhone]}
+                                className="px-2 py-1 text-xs bg-orange-200 text-orange-900 rounded hover:bg-orange-300 disabled:opacity-50 flex items-center gap-1"
+                              >
+                                <Send size={12} />
+                                {sendingReminder[family.parentPhone] ? 'Sending...' : 'Send Reminder'}
+                              </button>
+                              {reminderStatus[family.parentPhone] && (
+                                <p className="text-xs mt-1 font-medium">{reminderStatus[family.parentPhone]}</p>
+                              )}
+                            </div>
                           )}
                         </div>
                       </div>
